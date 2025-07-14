@@ -65,6 +65,12 @@ Una vez generado el historial y ajustado el sistema, puedes simular nuevos datos
 http://localhost:8000/docs
 ```
 
+### 2. Abre Web:
+
+```
+http://localhost:8000
+```
+
 ### 3. Ejecutar simulación:
 
 Usa el endpoint:
