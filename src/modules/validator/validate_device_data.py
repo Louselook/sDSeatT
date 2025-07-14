@@ -5,7 +5,7 @@ def validate_device_data(device_records):
     Valida los datos de un dispositivo usando el algoritmo de deltas.
     Retorna una lista de tuplas (timestamp, value, delta, clasificacion)
     """
-    if len(device_records) < 2:
+    if len(device_records) < 1:
         return []
 
     device_records = sorted(device_records, key=lambda x: x[1])

@@ -211,6 +211,9 @@ window.viewDashboard = viewDashboard;
 window.refreshData = refreshData;
 
 
+// Inicializar
+document.addEventListener('DOMContentLoaded', loadData);
+
 // ws-client.js
 const socket = new WebSocket(`ws://${location.host}/ws/updates`);
 
@@ -221,9 +224,12 @@ document.body.appendChild(notif);
 
 socket.onmessage = ({ data }) => {
   const msg = JSON.parse(data);
-  if (msg.type === 'new_record') {
-    // actualizas tu tabla (p.ej. refetch de /audit_data)
+
+  if (msg.type === 'new_record' && msg.device_id === DEVICE_ID) {
+    // Solo recarga si es el mismo dispositivo
+    loadData();  // vuelve a cargar todo (datos, filtros, stats y tablas)
   }
+
   else if (msg.type === 'alert') {
     const badge = document.createElement('div');
     badge.className = 'toast';

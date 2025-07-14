@@ -2,17 +2,28 @@ import asyncio
 import random
 import datetime
 import numpy as np
-import json
 import time
-from src.data.scripts import get_connection
+import uuid
+from src.data.scripts.connection import get_connection
+from src.modules.validator import (
+    insert_valid_record,
+    insert_audit_record,
+    validate_device_data,
+    update_device_stats
+)
+from broadcast import manager
 
-DB_FILE = 'src/data/db/database.db'
+# —— Configuración simulador ——  
+N_SERVICES = 5
+N_DEVICES_PER_SERVICE = 20
+TOTAL_DEVICES = N_SERVICES * N_DEVICES_PER_SERVICE
+INTERVAL_MINUTES = 15
+INTERVAL_SECONDS = INTERVAL_MINUTES * 60
+INTER_EVENT_MIN = 0.05
+INTER_EVENT_MAX = 5
+START_DATE = datetime.datetime(2025, 7, 7, 0, 0)
 
 def get_last_accumulated(device_id: int) -> float:
-    """
-    Recupera el último accumulated_value de audit_data para ese device_id.
-    Si no hay registros, retorna 0.0.
-    """
     conn = get_connection()
     cur = conn.cursor()
     cur.execute("""
@@ -26,34 +37,63 @@ def get_last_accumulated(device_id: int) -> float:
     conn.close()
     return row[0] if row else 0.0
 
-
-# —— Configuración simulador ——  
-N_SERVICES = 5
-N_DEVICES_PER_SERVICE = 20
-TOTAL_DEVICES = N_SERVICES * N_DEVICES_PER_SERVICE
-INTERVAL_MINUTES = 15
-INTERVAL_SECONDS = INTERVAL_MINUTES * 60
-INTER_EVENT_MIN = 0.05
-INTER_EVENT_MAX = 5
-START_DATE = datetime.date(2025, 7, 1)
-
 def solar_profile(hour: int) -> float:
     if 6 <= hour <= 18:
         x = (hour - 6) / 12 * np.pi
         return np.sin(x)
     return 0.0
 
+# Historial por dispositivo
+device_history = {}
+
 async def emit_record(device_id: int, sim_time: datetime.datetime, state: dict):
+    value = round(state["accumulated_energy"], 2)
+    timestamp = sim_time
+
+    print(f"\n📤 Generado → Device {device_id} | Valor acumulado: {value} | Hora: {timestamp}")
+
+    if device_id not in device_history:
+        device_history[device_id] = []
+
+    # Agrega a historial para validación
+    device_history[device_id].append((device_id, timestamp, value))
+
+    validated = validate_device_data(device_history[device_id])
+    if not validated:
+        print("⚠️ Aún no hay suficientes datos para validar.")
+        return
+
+    ts, val, delta, clas = validated[-1]
     record = {
-        "id_device": device_id,
-        "timestamp": sim_time.isoformat(),
-        "value": round(state["accumulated_energy"], 2)
+        "id": str(uuid.uuid4().hex[:15]),
+        "device_id": device_id,
+        "delta_value": round(delta, 3),
+        "accumulated_value": round(val, 3),
+        "clasificacion": clas,
+        "timestamp": ts.isoformat()
     }
-    # Aquí podrías además hacer un INSERT en audit_data...
-    print(json.dumps(record))
+
+    insert_audit_record(record)
+    print(f"✅ Insertado en audit_data → Δ: {delta:.3f}, Clasificación: {clas}")
+
+    if clas == "valido":
+        insert_valid_record(record)
+        print("🟢 Insertado en valid_records")
+
+    update_device_stats(device_id, [delta])
+    print("📊 Estadísticas actualizadas")
+
+    await manager.broadcast({
+        "type": "new_record",
+        "device_id": device_id,
+        "delta": delta,
+        "accumulated": val,
+        "clasificacion": clas,
+        "timestamp": ts.isoformat()
+    })
+
 
 async def main():
-    # → Inicializo cada dispositivo con su último acumulado en DB
     device_states = {
         device_id: {
             "accumulated_energy": get_last_accumulated(device_id),
@@ -78,7 +118,6 @@ async def main():
             for device_id in ids:
                 state = device_states[device_id]
 
-                # cálculo de delta y anomalías (igual que antes)
                 base_gen = solar_profile(sim_time.hour)
                 delta = base_gen * random.uniform(0.5, 1.5)
                 r = random.random()
@@ -92,7 +131,7 @@ async def main():
                 else:
                     state["frozen"] = False
 
-                # **Aquí actualizo el acumulado sobre lo que había en DB**
+                # Actualiza acumulado
                 state["accumulated_energy"] = max(
                     state["accumulated_energy"] + delta,
                     state["accumulated_energy"]
@@ -110,4 +149,4 @@ if __name__ == "__main__":
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
-        print("Simulación detenida.")
+        print("⛔ Simulación detenida.")
