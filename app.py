@@ -9,15 +9,15 @@ from routers.socket import router as sim_router
 
 app = FastAPI(title="Backend Erco", version="1.0.0")
 
-app.include_router(api_router)
-app.include_router(nav_router)
 app.include_router(sim_router)
+app.include_router(nav_router)
+app.include_router(api_router)
 
 # 3) Servimos estáticos y templates
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
-@app.get("/", response_class=HTMLResponse)
+@app.get("/", response_class=HTMLResponse, tags=["web"])
 def index(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
@@ -30,3 +30,8 @@ async def websocket_updates(ws: WebSocket):
             await ws.receive_text()
     except WebSocketDisconnect:
         manager.disconnect(ws)
+        
+def run_server():
+    import uvicorn
+    uvicorn.run("app:app", host='127.0.0.1', port=8000)
+    

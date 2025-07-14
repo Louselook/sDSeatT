@@ -30,6 +30,11 @@ body {
     padding: 2rem;
 }
 
+.changelist {
+    max-width: 1200px;
+    padding-bottom: 0.7rem;
+}
+
 .header {
     display: flex;
     align-items: center;
@@ -310,12 +315,6 @@ select, input {
     gap: 1rem;
     }
     
-    .data-row {
-    grid-template-columns: 1fr;
-    gap: 0.5rem;
-    }
-    
-    .charts-section {
-    grid-template-columns: 1fr;
-    }
+
+
 }

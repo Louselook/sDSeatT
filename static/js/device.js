@@ -2,6 +2,7 @@ let allData = [];
 let filteredData = [];
 let deltaChart = null;
 let accumulatedChart = null;
+let showOnlyValid = false;
 
 // Elementos del DOM
 const elements = {
@@ -19,7 +20,10 @@ const elements = {
     lastAccumulated: document.getElementById('last-accumulated'),
     firstRecord: document.getElementById('first-record'),
     lastRecord: document.getElementById('last-record'),
-    daysWithData: document.getElementById('days-with-data')
+    daysWithData: document.getElementById('days-with-data'),
+    btnAllRecords: document.getElementById('btn-all-records'),
+    btnValidRecords: document.getElementById('btn-valid-records'),
+
 };
 
 // Event listeners
@@ -27,10 +31,44 @@ elements.btnData.addEventListener('click', () => switchView('data'));
 elements.btnCharts.addEventListener('click', () => switchView('charts'));
 elements.dayFilter.addEventListener('change', filterData);
 elements.hourFilter.addEventListener('change', filterData);
+elements.btnAllRecords.addEventListener('click', () => {
+  showOnlyValid = false;
+  updateToggleButtons();
+  filterData();
+  if (!elements.dataView.classList.contains('hidden')) {
+    // Estamos viendo datos → no hacer nada extra
+  } else {
+    initializeCharts(); // actualiza si estamos en modo gráfico
+  }
+});
+
+elements.btnValidRecords.addEventListener('click', () => {
+  showOnlyValid = true;
+  updateToggleButtons();
+  filterData();
+  if (!elements.dataView.classList.contains('hidden')) {
+    // Estamos viendo datos → no hacer nada extra
+  } else {
+    initializeCharts(); // actualiza si estamos en modo gráfico
+  }
+});
+
+
 
 function goBack() {
     window.history.back();
 }
+
+function updateToggleButtons() {
+  if (showOnlyValid) {
+    elements.btnValidRecords.classList.add('active');
+    elements.btnAllRecords.classList.remove('active');
+  } else {
+    elements.btnAllRecords.classList.add('active');
+    elements.btnValidRecords.classList.remove('active');
+  }
+}
+
 
 function formatTimestamp(timestamp) {
     return new Date(timestamp).toLocaleString('es-ES', {
@@ -94,29 +132,36 @@ function setupFilters() {
 }
 
 function filterData() {
-    const selectedDay = elements.dayFilter.value;
-    const selectedHour = elements.hourFilter.value;
+  const selectedDay = elements.dayFilter.value;
+  const selectedHour = elements.hourFilter.value;
 
-    filteredData = allData.filter(item => {
+  const baseData = showOnlyValid ? allData.filter(item => item.clasificacion === 'valido') : allData;
+
+  filteredData = baseData.filter(item => {
     const itemDate = new Date(item.timestamp);
     const itemDay = itemDate.toISOString().split('T')[0];
     const itemHour = itemDate.getHours();
 
-    // Filtrar por horario de trabajo (6am - 6pm)
     if (itemHour < 6 || itemHour > 18) return false;
-
-    // Filtrar por día si está seleccionado
     if (selectedDay && itemDay !== selectedDay) return false;
-
-    // Filtrar por hora si está seleccionada
     if (selectedHour && itemHour !== parseInt(selectedHour)) return false;
 
     return true;
-    });
+  });
 
-    renderDataTable();
-    updateStats();
+  renderDataTable();
+  updateStats();
+
+  // Si estamos en vista de gráficos, actualiza las gráficas también
+  if (isChartsViewActive()) {
+    initializeCharts();
+  }
 }
+
+function isChartsViewActive() {
+  return !elements.chartsView.classList.contains('hidden');
+}
+
 
 function renderDataTable() {
     const data = filteredData.length > 0 ? filteredData : allData.filter(item => {
@@ -152,7 +197,7 @@ function updateStats() {
     return hour >= 6 && hour <= 18;
     });
 
-    const validData = workingData.filter(item => item.clasificacion === 'valid');
+    const validData = workingData.filter(item => item.clasificacion === 'valido');
     const totalRecords = workingData.length;
     const validRecords = validData.length;
     

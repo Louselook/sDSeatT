@@ -1,7 +1,6 @@
 import asyncio
 import random
 import datetime
-import numpy as np
 import time
 import uuid
 from src.data.scripts.connection import get_connection
@@ -13,15 +12,18 @@ from src.modules.validator import (
 )
 from broadcast import manager
 
-# —— Configuración simulador ——  
+# —— Configuración simulador de errores ——  
 N_SERVICES = 5
 N_DEVICES_PER_SERVICE = 20
 TOTAL_DEVICES = N_SERVICES * N_DEVICES_PER_SERVICE
 INTERVAL_MINUTES = 15
 INTERVAL_SECONDS = INTERVAL_MINUTES * 60
 INTER_EVENT_MIN = 0.5
-INTER_EVENT_MAX = 3
+INTER_EVENT_MAX = 1.5
 START_DATE = datetime.datetime(2025, 7, 7, 0, 0)
+
+# Historial por dispositivo
+device_history = {}
 
 def get_last_accumulated(device_id: int) -> float:
     conn = get_connection()
@@ -37,25 +39,15 @@ def get_last_accumulated(device_id: int) -> float:
     conn.close()
     return row[0] if row else 0.0
 
-def solar_profile(hour: int) -> float:
-    if 6 <= hour <= 18:
-        x = (hour - 6) / 12 * np.pi
-        return np.sin(x)
-    return 0.0
-
-# Historial por dispositivo
-device_history = {}
-
 async def emit_record(device_id: int, sim_time: datetime.datetime, state: dict):
     value = round(state["accumulated_energy"], 2)
     timestamp = sim_time
 
-    print(f"\n📤 Generado → Device {device_id} | Valor acumulado: {value} | Hora: {timestamp}")
+    print(f"\n❌ MAL DATO → Device {device_id} | Valor acumulado: {value} | Hora: {timestamp}")
 
     if device_id not in device_history:
         device_history[device_id] = []
 
-    # Agrega a historial para validación
     device_history[device_id].append((device_id, timestamp, value))
 
     validated = validate_device_data(device_history[device_id])
@@ -74,11 +66,11 @@ async def emit_record(device_id: int, sim_time: datetime.datetime, state: dict):
     }
 
     insert_audit_record(record)
-    print(f"✅ Insertado en audit_data → Δ: {delta:.3f}, Clasificación: {clas}")
+    print(f"🟥 Insertado (malo) → Δ: {delta:.3f}, Clasificación: {clas}")
 
     if clas == "valido":
         insert_valid_record(record)
-        print("🟢 Insertado en valid_records")
+        print("❗ Insertado en valid_records (aunque es atípico)")
 
     update_device_stats(device_id, [delta])
     print("📊 Estadísticas actualizadas")
@@ -118,20 +110,21 @@ async def main():
             for device_id in ids:
                 state = device_states[device_id]
 
-                base_gen = solar_profile(sim_time.hour)
-                delta = base_gen * random.uniform(0.5, 1.5)
-                r = random.random()
-                if r < 0.01:
-                    delta = -random.uniform(0.1, 0.5)
-                elif r < 0.02:
-                    delta *= 8
-                elif r < 0.04 and not state["frozen"]:
-                    delta = 0
-                    state["frozen"] = True
-                else:
-                    state["frozen"] = False
+                # —— Generamos únicamente anomalías —— #
+                anomaly_type = random.choice(["negative", "frozen", "spike"])
 
-                # Actualiza acumulado
+                if anomaly_type == "negative":
+                    delta = -random.uniform(1.0, 5.0)  # Energía negativa
+                    print("🔻 Dato negativo generado")
+                elif anomaly_type == "frozen":
+                    delta = 0.0  # Congelamiento
+                    state["frozen"] = True
+                    print("🧊 Lectura congelada")
+                elif anomaly_type == "spike":
+                    delta = random.uniform(10.0, 30.0)  # Pico grande
+                    print("🚀 Pico atípico generado")
+
+                # Acumulado solo crece si delta > 0
                 state["accumulated_energy"] = max(
                     state["accumulated_energy"] + delta,
                     state["accumulated_energy"]

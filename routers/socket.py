@@ -1,7 +1,7 @@
 from fastapi import APIRouter, BackgroundTasks
 from simulator import main as run_simulator
 
-router = APIRouter(tags=["navigation"])
+router = APIRouter(tags=["simulator"])
 
 @router.post("/iniciar_simulacion")
 async def iniciar_simulacion(background_tasks: BackgroundTasks):
