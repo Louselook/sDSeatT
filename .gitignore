@@ -1,0 +1,9 @@
+# Entornos virtuales
+.env/
+venv/
+__pycache__/
+
+# Archivos temporales o de sistema
+*.csv
+*.sqlite3
+*.db
