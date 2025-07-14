@@ -6,7 +6,7 @@ from src.utils import *
 def main():
     create_record()          # si genera datos previos
     create_db()              # crea y limpia la base
-    insert_initial_data()    # inserta projects y devices
+    # insert_initial_data()    # inserta projects y devices
 
 if __name__ == "__main__":
     main()

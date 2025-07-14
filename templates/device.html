@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Dispositivo {{ device_id }}</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+  <link rel="stylesheet" href="/static/css/device.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1 class="title">Dispositivo {{ device_id }}</h1>
+      <button onclick="goBack()" class="back-btn">← Volver</button>
+    </div>
+
+    <div class="controls">
+      <div class="filter-group">
+        <label>Día:</label>
+        <select id="day-filter">
+          <option value="">Todos los días</option>
+        </select>
+      </div>
+      
+      <div class="filter-group">
+        <label>Hora:</label>
+        <select id="hour-filter">
+          <option value="">Todas las horas</option>
+        </select>
+      </div>
+      
+      <div class="view-toggle">
+        <button id="btn-data" class="toggle-btn active">Datos</button>
+        <button id="btn-charts" class="toggle-btn">Gráficos</button>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="main-content">
+        <!-- Vista de datos -->
+        <div id="data-view">
+          <div class="content-header">
+            <h2 class="content-title">Registros del Dispositivo</h2>
+            <span class="record-count" id="record-count">0 registros</span>
+          </div>
+          <div class="data-table" id="data-table">
+            <div class="loading">
+              <div class="spinner"></div>
+              <span>Cargando datos...</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Vista de gráficos -->
+        <div id="charts-view" class="hidden">
+          <div class="charts-section">
+            <div class="chart-container">
+              <h3 class="chart-title">Dispersión Delta</h3>
+              <canvas id="delta-chart" class="chart-canvas"></canvas>
+            </div>
+            <div class="chart-container">
+              <h3 class="chart-title">Valores Acumulados</h3>
+              <canvas id="accumulated-chart" class="chart-canvas"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stats-sidebar">
+        <div class="stats-card">
+          <h3 class="stats-title">Estadísticas</h3>
+          <div class="stat-item">
+            <span class="stat-label">Total registros</span>
+            <span class="stat-value" id="total-records">--</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Registros válidos</span>
+            <span class="stat-value" id="valid-records">--</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Promedio Delta</span>
+            <span class="stat-value" id="avg-delta">--</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Último acumulado</span>
+            <span class="stat-value" id="last-accumulated">--</span>
+          </div>
+        </div>
+
+        <div class="stats-card">
+          <h3 class="stats-title">Rango de Datos</h3>
+          <div class="stat-item">
+            <span class="stat-label">Primer registro</span>
+            <span class="stat-value" id="first-record">--</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Último registro</span>
+            <span class="stat-value" id="last-record">--</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Días con datos</span>
+            <span class="stat-value" id="days-with-data">--</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const DEVICE_ID = {{ device_id }};
+    function goBack() { window.history.back(); }
+  </script>
+  <script src="/static/js/device.js"></script>
+</body>
+</html>

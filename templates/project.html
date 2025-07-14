@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Proyecto {{ project_id }}</title>
+  <link rel="stylesheet" href="/static/css/index.css"/>
+  <link rel="stylesheet" href="/static/css/project.css"/>
+</head>
+<body>
+  <div class="container">
+    <button onclick="goBack()" class="btn back">← Volver a proyectos</button>
+    
+    <div class="project-header">
+      <h1 id="project-name">Cargando proyecto...</h1>
+      <div class="project-stats">
+        <div class="stat-item">
+          <div class="stat-value" id="device-count">0</div>
+          <div class="stat-label">Dispositivos</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="avg-mean">0.00</div>
+          <div class="stat-label">Media</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="avg-std">0.00</div>
+          <div class="stat-label">Desv. Est.</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="avg-var">0.00</div>
+          <div class="stat-label">Varianza</div>
+        </div>
+      </div>
+    </div>
+
+    <section class="devices-section">
+      <h2>Dispositivos del proyecto</h2>
+      <div id="loading" class="loading">
+        <div class="spinner"></div>
+        <p>Cargando dispositivos...</p>
+      </div>
+      <div id="error" class="error hidden">
+        <p>Error al cargar los dispositivos</p>
+        <button class="btn primary" onclick="loadDevices()">Reintentar</button>
+      </div>
+      <div id="devices-container" class="devices-grid hidden"></div>
+      <div id="empty-state" class="empty-state hidden">
+        <h3>No hay dispositivos en este proyecto</h3>
+        <p>Agrega dispositivos para comenzar a ver estadísticas</p>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // Inyecta desde Jinja el ID para que tu project.js lo use
+    const PROJECT_ID = {{ project_id }};
+  </script>
+  <script src="/static/js/project.js"></script>
+</body>
+</html>

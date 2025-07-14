@@ -1,8 +1,6 @@
 import uuid
 import sqlite3
 import pandas as pd
-import sys
-import os
 
 DB = 'data/database.db'
 CSV_SERV = 'data/historical/services.csv'
@@ -28,7 +26,7 @@ def load_table(table, df, cols):
 
     # 3. Carga records → raw_records con UUID
     df_r = pd.read_csv(CSV_RECS, names=['device_id','timestamp','value'], header=0)
-    df_r.insert(0, 'id', [str(uuid.uuid4()) for _ in range(len(df_r))])
+    df_r.insert(0, 'id', [str(uuid.uuid4().hex[:15]) for _ in range(len(df_r))])
     df_r['clasificacion'] = 'pendiente'
     load_table('raw_records', df_r, ['id','device_id','timestamp','value','clasificacion'])
 

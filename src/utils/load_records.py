@@ -40,7 +40,7 @@ def main():
         update_device_stats(device_id, deltas)
 
         for timestamp, value, delta, clas in validated:
-            audit_id = str(uuid.uuid4())
+            audit_id = str(uuid.uuid4().hex[:15])
             d = dict(
                 id=audit_id,
                 device_id=device_id,

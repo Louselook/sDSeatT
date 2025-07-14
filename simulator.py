@@ -4,9 +4,9 @@ import datetime
 import numpy as np
 import json
 import time
-from src.data.scripts.connection import get_connection
+from src.data.scripts import get_connection
 
-DB_FILE = 'src/data/scripts/database.db'
+DB_FILE = 'src/data/db/database.db'
 
 def get_last_accumulated(device_id: int) -> float:
     """

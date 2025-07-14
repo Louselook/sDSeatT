@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Erco test</title>
+  <link rel="stylesheet" href="/static/css/index.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1 class="title">Proyectos</h1>
+      <p class="subtitle">Gestión y monitoreo de dispositivos</p>
+    </div>
+    
+    <!-- Loading spinner -->
+    <div id="loading" class="loading">
+      <div class="spinner"></div>
+      <p>Cargando proyectos...</p>
+    </div>
+    
+    <!-- Error message -->
+    <div id="error" class="error hidden">
+      <p>Error al cargar los proyectos. Por favor, inténtelo de nuevo.</p>
+      <button class="btn secondary" onclick="loadProjects()">Reintentar</button>
+    </div>
+    
+    <!-- Cards container -->
+    <div id="cards-container" class="cards hidden">
+      <!-- Los proyectos se cargarán aquí dinámicamente -->
+    </div>
+    
+    <!-- Empty state -->
+    <div id="empty-state" class="empty-state hidden">
+      <h3>No hay proyectos disponibles</h3>
+      <p>Aún no se han creado proyectos en el sistema.</p>
+    </div>
+  </div>
+
+  <script src="/static/js/index.js"></script>
+</body>
+</html>
