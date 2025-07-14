@@ -1,13 +1,5 @@
 # Simulador - Dispositivos Solares - Ejercicio Técnico
 
-## Requisitos Previos
-
-- Python 3.8 o superior instalado
-- `pip` para gestión de dependencias
-- Acceso a terminal / consola
-
----
-
 ## Configuración del Entorno Virtual
 
 ### 1. Crear un entorno virtual
